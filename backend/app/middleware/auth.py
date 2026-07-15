@@ -25,13 +25,13 @@ async def get_current_user_id(
             detail=f"Invalid or expired token: {e}",
         )
 
-    if not response or not response.claims:
+    if not response or not response.get("claims"):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token verification returned no claims.",
         )
 
-    user_id = response.claims.get("sub")
+    user_id = response["claims"].get("sub")
     if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
