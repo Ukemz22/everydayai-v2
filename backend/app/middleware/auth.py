@@ -1,6 +1,6 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from supabase_auth.errors import AuthApiError
+from supabase_auth.errors import AuthError
 
 from app.services.supabase import get_supabase
 
@@ -19,7 +19,7 @@ async def get_current_user_id(
 
     try:
         response = supabase.auth.get_claims(token)
-    except AuthApiError as e:
+    except AuthError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid or expired token: {e}",
