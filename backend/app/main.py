@@ -1,9 +1,10 @@
 from contextlib import asynccontextmanager
 import sentry_sdk
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
+from app.middleware.auth import get_current_business  # ← NEW
 
 
 @asynccontextmanager
@@ -44,6 +45,11 @@ def create_app() -> FastAPI:
             "status": "ok",
             "environment": settings.ENVIRONMENT,
         }
+
+    # ← NEW: a test route to prove auth works
+    @app.get("/me", tags=["Auth"])
+    async def me(business: dict = Depends(get_current_business)):
+        return {"business_id": business["id"], "name": business["name"]}
 
     return app
 
