@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from supabase_auth.errors import AuthError
 
@@ -42,6 +42,7 @@ async def get_current_user_id(
 
 
 async def get_current_business(
+    request: Request,
     user_id: str = Depends(get_current_user_id),
 ) -> dict:
     """
@@ -66,4 +67,5 @@ async def get_current_business(
             detail="No business found for this user.",
         )
 
+    request.state.business_id = result.data["id"]
     return result.data

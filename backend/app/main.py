@@ -1,10 +1,14 @@
 from contextlib import asynccontextmanager
 import sentry_sdk
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
 from app.config import get_settings
-from app.middleware.auth import get_current_business  # ← NEW
+from app.core.limiter import limiter
+from app.middleware.auth import get_current_business
 
 
 @asynccontextmanager
@@ -31,6 +35,9 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[settings.FRONTEND_URL],
@@ -39,6 +46,8 @@ def create_app() -> FastAPI:
         allow_headers=["Authorization", "Content-Type"],
     )
 
+    app.add_middleware(SlowAPIMiddleware)
+
     @app.get("/health", tags=["Health"])
     async def health():
         return {
@@ -46,9 +55,9 @@ def create_app() -> FastAPI:
             "environment": settings.ENVIRONMENT,
         }
 
-    # ← NEW: a test route to prove auth works
     @app.get("/me", tags=["Auth"])
-    async def me(business: dict = Depends(get_current_business)):
+    @limiter.limit("5/minute")
+    async def me(request: Request, business: dict = Depends(get_current_business)):
         return {"business_id": business["id"], "name": business["name"]}
 
     return app
