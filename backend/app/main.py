@@ -9,6 +9,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from app.config import get_settings
 from app.core.limiter import limiter
 from app.middleware.auth import get_current_business
+from app.routers import settings as settings_router
 
 
 @asynccontextmanager
@@ -47,6 +48,8 @@ def create_app() -> FastAPI:
     )
 
     app.add_middleware(SlowAPIMiddleware)
+
+    app.include_router(settings_router.router)
 
     @app.get("/health", tags=["Health"])
     async def health():
