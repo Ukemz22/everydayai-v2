@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     # Redis
     REDIS_URL: str = "redis://localhost:6379"
 
+    # Telegram
+    TELEGRAM_WEBHOOK_SECRET: str = ""
+
     @property
     def is_production(self) -> bool:
         return self.ENVIRONMENT == "production"
