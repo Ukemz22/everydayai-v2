@@ -9,7 +9,6 @@ from slowapi.middleware import SlowAPIMiddleware
 from app.config import get_settings
 from app.core.limiter import limiter
 from app.middleware.auth import get_current_business
-from app.middleware.telegram_auth import verify_telegram_webhook
 
 
 @asynccontextmanager
@@ -60,11 +59,6 @@ def create_app() -> FastAPI:
     @limiter.limit("5/minute")
     async def me(request: Request, business: dict = Depends(get_current_business)):
         return {"business_id": business["id"], "name": business["name"]}
-
-    # TEMPORARY — remove once the real /webhook/telegram route is built in Chapter 9
-    @app.post("/webhook/telegram-test", dependencies=[Depends(verify_telegram_webhook)])
-    async def telegram_test():
-        return {"status": "verified"}
 
     return app
 
