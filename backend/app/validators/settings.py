@@ -2,6 +2,19 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 
+class ByokRequest(BaseModel):
+    """Payload for POST /settings/byok. The raw key is validated against
+    OpenAI, stored encrypted in Supabase Vault, and never echoed back."""
+    openai_api_key: str = Field(min_length=20)
+
+
+class ByokResponse(BaseModel):
+    """Deliberately excludes the raw key. 'rotated' tells the frontend
+    whether this replaced an existing key or created a new one."""
+    status: str
+    rotated: bool
+
+
 class SettingsResponse(BaseModel):
     """
     What GET /settings returns. Deliberately does NOT include
